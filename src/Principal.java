@@ -2,6 +2,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Principal {
-    public static void main(String[] args) throws IOException, InterruptedException, NullPointerException{
+    public static void main(String[] args) throws IOException {
         Scanner leitura = new Scanner(System.in);
         String busca = " ";
 
@@ -29,31 +30,35 @@ public class Principal {
 
 
 
-            String endereco = "http://viacep.com.br/ws/" + busca + "/json/";
+            String endereco = "https://viacep.com.br/ws/" + busca + "/json";
 
                     HttpClient client = HttpClient.newHttpClient();
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(endereco))
                             .build();
-                    HttpResponse<String> response = client
-                            .send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = null;
+            try {
+                response = client
+                        .send(request, HttpResponse.BodyHandlers.ofString());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
 
-            String json = response.body();
-            System.out.println(json);
-
-            CepConsultados cepColhidos = gson.fromJson(json, CepConsultados.class);
-            System.out.println(cepColhidos);
+            CepConsultados cepColhidos = new Gson().fromJson(response.body(), CepConsultados.class);
+            //System.out.println(cepColhidos);
             CEP arquivosceps = new CEP(cepColhidos);
 
             enderecos.add(arquivosceps);
 
-
+            System.out.println(arquivosceps);
 
         }
-       //FileWriter escrita = new FileWriter("endereco.json");
-       //escrita.write(gson.toJson(enderecos));
-       //escrita.close();
-
+       FileWriter escrita = new FileWriter("endereco9.json");
+       escrita.write(gson.toJson(enderecos));
+       escrita.close();
+        System.out.println(enderecos);
         System.out.println("F  I  M !");
     }
 }
